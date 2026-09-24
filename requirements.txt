@@ -1,0 +1,6 @@
+numpy>=2.0,<3
+cupy-cuda12x>=13,<15
+matplotlib>=3.8
+safetensors>=0.4
+tokenizers>=0.20
+# Install toolkit wheels matched to your driver; see README for this machine.
