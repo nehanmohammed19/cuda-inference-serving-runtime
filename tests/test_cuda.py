@@ -14,6 +14,17 @@ class CudaTests(unittest.TestCase):
         # Fail loudly on initialization errors when GPU validation was requested.
         cls.backend = Backend('cuda')
 
+    def test_model_and_scheduler_match_cpu(self):
+        from runtime.model import Config,Model,toy_weights
+        from runtime.engine import Engine,Request
+        c=Config(); w=toy_weights(c); outputs=[]
+        for backend in [Backend(),self.backend]:
+            model=Model(backend,c,w,pages=32,page_size=2)
+            e=Engine(model,token_budget=3,prefill_chunk=2)
+            for i,n in enumerate([1,7,3]): e.submit(Request(str(i),list(range(n)),5))
+            outputs.append([r.generated for r in e.run()])
+        self.assertEqual(outputs[0],outputs[1])
+
     def test_norm_rope(self):
         b = self.backend; cp = b.xp
         rng = np.random.default_rng(9)
