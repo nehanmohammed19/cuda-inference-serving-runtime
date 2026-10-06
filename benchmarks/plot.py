@@ -12,7 +12,7 @@ def main():
     plt.rcParams.update({'font.size':10,'figure.dpi':150,'axes.spines.top':False,'axes.spines.right':False})
     if 'kernels' in data:
         fig,ax=plt.subplots(figsize=(8,4.5))
-        for name in ['paged_cuda','paged_cuda_graph','cupy_dense_oracle']:
+        for name in ['paged_cuda','paged_cuda_graph','split_kv_cuda','cupy_dense_oracle']:
             rows=[r for r in data['kernels'] if r['implementation']==name]
             ax.plot([r['context'] for r in rows],[r['latency_ms']['median'] for r in rows],marker='o',label=name)
         ax.set(xlabel='Context length (tokens)',ylabel='CUDA-event latency (ms, median)',

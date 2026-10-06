@@ -4,6 +4,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 import json
+import hashlib
 import platform
 import subprocess
 import time
@@ -44,6 +45,9 @@ def kernel_benchmark(b,repeats):
         q=cp.asarray(rng.normal(size=(batch,heads,dim)),dtype=cp.float32); out=cp.empty_like(q)
         def custom(): b.launch_attention(q,c,tables,lengths,out)
         graph=b.capture_attention(q,c,tables,lengths,out)
+        splits=min(16,(length+127)//128)
+        partial,stats=b.split_workspace(q,splits)
+        def split(): b.launch_split(q,c,tables,lengths,out,partial,stats,splits)
         # Same FP32 operands, actual device operations. This high-level dense
         # oracle includes gathers and temporary arrays; it is NOT FlashAttention.
         def dense():
@@ -58,7 +62,10 @@ def kernel_benchmark(b,repeats):
         expected=b.numpy(dense()); custom(); b.sync()
         error=float(np.max(np.abs(b.numpy(out)-expected)))
         np.testing.assert_allclose(b.numpy(out),expected,atol=3e-6,rtol=3e-5)
-        for name,fn in [('paged_cuda',custom),('paged_cuda_graph',graph.launch),('cupy_dense_oracle',dense)]:
+        split(); b.sync()
+        np.testing.assert_allclose(b.numpy(out),expected,atol=3e-6,rtol=3e-5)
+        for name,fn in [('paged_cuda',custom),('paged_cuda_graph',graph.launch),
+                        ('split_kv_cuda',split),('cupy_dense_oracle',dense)]:
             results.append({'implementation':name,'context':length,'batch':batch,'query_heads':heads,
                 'kv_heads':kvheads,'head_dim':dim,'dtype':'float32','max_abs_error':error,
                 'latency_ms':gpu_time(cp,fn,repeats)})
@@ -72,7 +79,7 @@ def serving_benchmark(device,trials):
     for policy in ['serial','chunked','decode_first']:
         for trial in range(trials):
             model=Model(b,c,w,pages=64,page_size=4)
-            e=Engine(model,policy=policy,token_budget=8,prefill_chunk=4)
+            e=Engine(model,policy=policy,token_budget=2,prefill_chunk=4)
             for i,n in enumerate([1,4,8,16]):
                 e.submit(Request(str(i),[j%c.vocab_size for j in range(n)],4))
             requests=e.run(); elapsed=time.perf_counter()-e.start
@@ -87,7 +94,7 @@ def serving_benchmark(device,trials):
     assert all(r['generated']==results[0]['generated'] for r in results)
     return {'model_config':asdict(c),'weights':'random-toy-seed-42',
             'prompt_lengths':[1,4,8,16],'outputs_per_request':4,'arrival':'all at time zero',
-            'token_budget':8,'prefill_chunk':4,'trials':results}
+            'token_budget':2,'prefill_chunk':4,'trials':results}
 
 
 def main():
@@ -102,6 +109,9 @@ def main():
           'python':platform.python_version(),'numpy':np.__version__,
           'git_revision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
           'history_note':'commit dates are reconstructed; measurement timestamp is actual',
+          'source_sha256':{str(p):hashlib.sha256(p.read_bytes()).hexdigest()
+                           for folder in ['runtime','kernels','benchmarks']
+                           for p in sorted(Path(folder).glob('*')) if p.is_file() and p.suffix in ['.py','.cu']},
           'cpu_serving':serving_benchmark('cpu',args.trials)}
     if not args.cpu_only:
         b=Backend('cuda'); cp=b.xp

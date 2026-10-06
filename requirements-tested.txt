@@ -1,0 +1,9 @@
+cuda-pathfinder==1.8.5
+cupy-cuda12x==14.2.0
+matplotlib==3.11.2
+numpy==2.3.5
+nvidia-cublas-cu12==12.4.5.8
+nvidia-cuda-nvrtc-cu12==12.4.127
+nvidia-cuda-runtime-cu12==12.4.127
+safetensors==0.8.0
+tokenizers==0.23.3
