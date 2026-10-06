@@ -1,0 +1,36 @@
+{
+  "measured_at_utc": "2026-10-30T01:10:36.836687+00:00",
+  "model": "HuggingFaceTB/SmolLM2-135M",
+  "returncode": 0,
+  "output": {
+    "device": "cuda",
+    "weights": "pretrained-local",
+    "requests": [
+      {
+        "key": "request-0",
+        "status": "finished",
+        "generated": [
+          260,
+          3575,
+          282,
+          260,
+          1798,
+          30,
+          198,
+          198,
+          504,
+          3575,
+          282,
+          4649,
+          314,
+          260,
+          3575,
+          282
+        ],
+        "text": " the capital of the country.\n\nThe capital of France is the capital of",
+        "ttft_ms": 402.6138000190258
+      }
+    ]
+  },
+  "stderr": "C:\\Users\\nehan\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\site-packages\\cupy\\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.\n  warnings.warn(\n"
+}
