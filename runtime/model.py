@@ -60,10 +60,8 @@ class Model:
         self.backend, self.config = backend, config
         self.xp = backend.xp
         # Validate before copying potentially large weights to the GPU.
-        expected = toy_weights(config) if config.hidden_size < 256 else None
-        if expected is not None:
-            for name,array in expected.items():
-                if weights[name].shape != array.shape: raise ValueError('shape mismatch: '+name)
+        from .checkpoint import validate_weights
+        validate_weights(config, weights)
         self.weights = {k:self.xp.asarray(v,dtype=self.xp.float32) for k,v in weights.items()}
         self.caches = [PagedCache(self.xp,pages,page_size,config.num_key_value_heads,config.dim)
                        for _ in range(config.num_hidden_layers)]

@@ -29,6 +29,8 @@ class Backend:
         self.rms_kernel = self.module.get_function('rms')
         self.rope_kernel = self.module.get_function('rotate')
         self.attention_kernel = self.module.get_function('paged_attention')
+        self.split_kernel = self.module.get_function('split_attention')
+        self.merge_kernel = self.module.get_function('merge_attention')
 
     def sync(self):
         if self.device == 'cuda': self.xp.cuda.get_current_stream().synchronize()
@@ -58,8 +60,26 @@ class Backend:
                              for i, key in enumerate(keys)])
         tables, lengths = cache.metadata(keys)
         out = self.xp.empty_like(q)
-        self.launch_attention(q, cache, tables, lengths, out)
+        splits=min(16,(max(cache.lengths[k] for k in keys)+127)//128)
+        if splits>1:
+            partial,stats=self.split_workspace(q,splits)
+            self.launch_split(q,cache,tables,lengths,out,partial,stats,splits)
+        else:
+            self.launch_attention(q, cache, tables, lengths, out)
         return out
+
+    def split_workspace(self,q,splits):
+        b,h,d=q.shape
+        return (self.xp.empty((b,h,splits,d),dtype=self.xp.float32),
+                self.xp.empty((b,h,splits,2),dtype=self.xp.float32))
+
+    def launch_split(self,q,cache,tables,lengths,out,partial,stats,splits):
+        b,h,d=q.shape
+        if d>256 or splits<1 or h%cache.k.shape[2]: raise ValueError('unsupported split geometry')
+        self.split_kernel((b,h,splits),(256,),
+            (q,cache.k,cache.v,tables,lengths,partial,stats,np.int32(tables.shape[1]),
+             np.int32(cache.page_size),np.int32(h),np.int32(cache.k.shape[2]),np.int32(d),np.int32(splits)))
+        self.merge_kernel((b,h),(256,),(partial,stats,out,np.int32(h),np.int32(d),np.int32(splits)))
 
     def launch_attention(self, q, cache, tables, lengths, out):
         b, h, d = q.shape

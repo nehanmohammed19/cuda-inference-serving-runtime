@@ -21,7 +21,7 @@ extern "C" __global__ void rms(const float* x, const float* w, float* y,
 extern "C" __global__ void rotate(const float* x, const int* positions,
                                   float* y, int heads, int dim, float theta) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    int half = dim / 2, total = gridDim.y; // batch carried by blockIdx.y
+    int half = dim / 2;
     int batch = blockIdx.y;
     if (index >= heads * half) return;
     int head = index / half, d = index % half;
@@ -30,6 +30,59 @@ extern "C" __global__ void rotate(const float* x, const int* positions,
     float c = cosf(angle), s = sinf(angle);
     float a = x[base+d], b = x[base+d+half];
     y[base+d] = a*c-b*s; y[base+d+half] = b*c+a*s;
+}
+
+// Split a long context into independent CTA reductions, then merge their
+// (maximum, denominator, normalized output) triples using log-sum-exp weights.
+extern "C" __global__ void split_attention(
+    const float* q, const float* k, const float* v, const int* tables,
+    const int* lengths, float* partial, float* stats, int width, int page_size,
+    int query_heads, int kv_heads, int dim, int splits) {
+    __shared__ float dot[256];
+    __shared__ float m,l,alpha,beta;
+    int lane=threadIdx.x,row=blockIdx.x,head=blockIdx.y,split=blockIdx.z;
+    int kh=head/(query_heads/kv_heads), qb=(row*query_heads+head)*dim;
+    int chunk=(lengths[row]+splits-1)/splits;
+    int begin=split*chunk,end=min(begin+chunk,lengths[row]);
+    int part=(row*query_heads+head)*splits+split;
+    float accumulator=0;
+    if(lane==0){m=-1.0f/0.0f;l=0;}
+    __syncthreads();
+    for(int t=begin;t<end;++t){
+        int page=tables[row*width+t/page_size];
+        long long base=((long long)page*page_size+t%page_size)*kv_heads*dim+kh*dim;
+        dot[lane]=lane<dim?q[qb+lane]*k[base+lane]:0;
+        __syncthreads();
+        for(int stride=128;stride;stride>>=1){
+            if(lane<stride)dot[lane]+=dot[lane+stride];
+            __syncthreads();
+        }
+        if(lane==0){
+            float score=dot[0]*rsqrtf((float)dim), next=fmaxf(m,score);
+            alpha=expf(m-next);beta=expf(score-next);l=alpha*l+beta;m=next;
+        }
+        __syncthreads();
+        if(lane<dim)accumulator=alpha*accumulator+beta*v[base+lane];
+        __syncthreads();
+    }
+    if(lane<dim)partial[part*dim+lane]=l>0?accumulator/l:0;
+    if(lane==0){stats[part*2]=m;stats[part*2+1]=l;}
+}
+
+extern "C" __global__ void merge_attention(const float* partial,const float* stats,
+                                           float* out,int heads,int dim,int splits){
+    int d=threadIdx.x,row=blockIdx.x,head=blockIdx.y;
+    if(d>=dim)return;
+    int base=(row*heads+head)*splits;
+    float maximum=-1.0f/0.0f;
+    for(int s=0;s<splits;++s)maximum=fmaxf(maximum,stats[(base+s)*2]);
+    float denominator=0,numerator=0;
+    for(int s=0;s<splits;++s){
+        float l=stats[(base+s)*2+1];
+        float weight=l>0?expf(stats[(base+s)*2]-maximum)*l:0;
+        denominator+=weight;numerator+=weight*partial[(base+s)*dim+d];
+    }
+    out[(row*heads+head)*dim+d]=numerator/denominator;
 }
 
 extern "C" __global__ void paged_attention(

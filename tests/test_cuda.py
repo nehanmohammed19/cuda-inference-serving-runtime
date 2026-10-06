@@ -54,6 +54,10 @@ class CudaTests(unittest.TestCase):
             out = b.attention(q,c,['a','b'])
             np.testing.assert_allclose(b.numpy(out), expected, atol=2e-6, rtol=2e-5)
             tables, lengths = c.metadata(['a','b']); dest = cp.empty_like(q)
+            for splits in [1,3,16]:
+                partial,stats=b.split_workspace(q,splits)
+                b.launch_split(q,c,tables,lengths,dest,partial,stats,splits)
+                np.testing.assert_allclose(b.numpy(dest),expected,atol=2e-6,rtol=2e-5)
             graph = b.capture_attention(q,c,tables,lengths,dest)
             graph.launch(); b.sync()
             np.testing.assert_allclose(b.numpy(dest),expected,atol=2e-6,rtol=2e-5)
