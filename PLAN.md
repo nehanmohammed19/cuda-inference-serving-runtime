@@ -49,3 +49,12 @@ CPU/GPU overlap, multi-GPU, speculative decoding and quantization are follow-ons
 The requested historical dates are a reconstructed presentation timeline, not
 evidence of work performed on those dates. Commits and README disclose this. All
 measurement timestamps record the actual experiment time.
+
+## Completion record
+
+All twelve stages were completed in the October 29 implementation session.
+The host runtime is Python, CUDA kernels are runtime compiled, and dense GEMM is
+delegated to NumPy/CuPy. Split-KV and fixed attention graph replay ran on the
+RTX 4060. Sixteen tests passed. A SmolLM2-135M checkpoint completed generation.
+The README and results explicitly delimit whole-model graphs, native C++ hosting,
+Tensor Core attention and advanced serving features that remain future work.
