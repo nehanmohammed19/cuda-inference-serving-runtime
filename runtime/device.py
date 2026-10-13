@@ -115,7 +115,7 @@ class ProgramCache:
 class StagingBuffer:
     def __init__(self, cp, shape, dtype):
         self.owner = cp.cuda.alloc_pinned_memory(int(np.prod(shape))*np.dtype(dtype).itemsize)
-        self.host = np.frombuffer(self.owner, dtype=dtype).reshape(shape)
+        self.host = np.frombuffer(self.owner, dtype=dtype, count=int(np.prod(shape))).reshape(shape)
         self.device = cp.empty(shape, dtype=dtype)
         self.last_upload = None
 

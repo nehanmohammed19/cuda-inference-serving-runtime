@@ -57,6 +57,25 @@ class PagedCache:
         self.v[table[-1], offset] = v
         self.lengths[key] += 1
 
+    def prepare_append(self, keys):
+        """Reserve physical slots without writing values; execution supplies KV.
+
+        Call after preflighting all layers. Commit lengths only after successfully
+        submitting the device program. Copy-on-write runs on the caller's stream.
+        """
+        slots=[]
+        for key in keys:
+            offset=self.lengths[key]%self.page_size
+            table=self.tables[key]
+            if offset==0:
+                table.append(self._allocate())
+            elif self.refs[table[-1]]>1:
+                old=table[-1];new=self._allocate()
+                self.k[new]=self.k[old];self.v[new]=self.v[old]
+                self.refs[old]-=1;table[-1]=new
+            slots.append(table[-1]*self.page_size+offset)
+        return np.asarray(slots,dtype=np.int32)
+
     def release(self, key):
         for page in self.tables.pop(key):
             self.refs[page] -= 1
@@ -86,3 +105,14 @@ class PagedCache:
         assert np.array_equal(expected, self.refs)
         assert set(self.free) == set(np.flatnonzero(self.refs == 0))
         assert len(self.free) == len(set(self.free))
+
+    def report(self):
+        used=len(self.refs)-len(self.free)
+        physical_token_bytes=2*self.k.shape[2]*self.k.shape[3]*self.k.dtype.itemsize
+        logical_tokens=sum(self.lengths.values())
+        return {'pool_bytes':self.k.nbytes+self.v.nbytes,'resident_pages':used,
+                'peak_pages':self.peak_pages,'free_pages':len(self.free),
+                'physical_resident_bytes':used*self.page_size*physical_token_bytes,
+                'logical_payload_bytes':logical_tokens*physical_token_bytes,
+                'shared_pages':int(np.count_nonzero(self.refs>1)),
+                'sequences':len(self.tables)}
