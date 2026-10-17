@@ -56,7 +56,7 @@ def toy_weights(config, seed=42):
 
 
 class Model:
-    def __init__(self, backend, config, weights, pages=256, page_size=16):
+    def __init__(self, backend, config, weights, pages=256, page_size=16, execution='eager'):
         self.backend, self.config = backend, config
         self.xp = backend.xp
         # Validate before copying potentially large weights to the GPU.
@@ -65,6 +65,10 @@ class Model:
         self.weights = {k:self.xp.asarray(v,dtype=self.xp.float32) for k,v in weights.items()}
         self.caches = [PagedCache(self.xp,pages,page_size,config.num_key_value_heads,config.dim)
                        for _ in range(config.num_hidden_layers)]
+        self.execution=None
+        if execution!='eager':
+            from .execution import ExecutionRuntime
+            self.execution=ExecutionRuntime(self,mode=execution)
 
     def create(self,key):
         for cache in self.caches: cache.create(key)
@@ -73,8 +77,16 @@ class Model:
         self.backend.sync()
         for cache in self.caches: cache.release(key)
 
+    def close(self):
+        self.backend.sync()
+        if self.execution is not None: self.execution.close()
+
     def step(self, tokens, keys):
-        """Consume one token per sequence; return next-token logits for every row."""
+        """Consume one token per sequence and return next-token logits.
+
+        Buffered/graph results borrow program storage until its next invocation;
+        copy the logits if they must outlive that invocation.
+        """
         c=self.config; xp=self.xp; b=self.backend
         if not keys or len(keys)!=len(tokens) or len(set(keys))!=len(keys):
             raise ValueError('one unique sequence key per token is required')
@@ -86,6 +98,8 @@ class Model:
             needed=sum(cache.lengths[k]%cache.page_size==0 or
                        cache.refs[cache.tables[k][-1]]>1 for k in keys)
             if needed>len(cache.free): raise MemoryError('insufficient KV pages for step')
+        if self.execution is not None:
+            return self.execution.step(tokens,keys)
         pos=xp.asarray(positions); x=self.weights['model.embed_tokens.weight'][xp.asarray(tokens)]
         for layer,cache in enumerate(self.caches):
             prefix=f'model.layers.{layer}.'

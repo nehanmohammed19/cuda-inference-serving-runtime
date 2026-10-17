@@ -11,6 +11,7 @@ from .engine import Engine,Request
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device',choices=['cpu','cuda'],default='cpu')
+    parser.add_argument('--execution',choices=['eager','buffered','graph'],default='eager')
     parser.add_argument('--checkpoint',type=Path)
     parser.add_argument('--prompt',default='The capital of France is')
     parser.add_argument('--tokens',default='1,2,3',help='toy token IDs')
@@ -29,7 +30,7 @@ def main():
         prompt=tokenizer.encode(args.prompt).ids
     else:
         c=Config(); w=toy_weights(c); prompt=[int(t) for t in args.tokens.split(',')]
-    model=Model(Backend(args.device),c,w,pages=args.pages,page_size=args.page_size)
+    model=Model(Backend(args.device),c,w,pages=args.pages,page_size=args.page_size,execution=args.execution)
     engine=Engine(model,policy=args.policy,token_budget=args.token_budget,prefill_chunk=args.prefill_chunk)
     inputs=json.loads(args.requests.read_text()) if args.requests else [
         {'key':'request-0','prompt':prompt,'max_new_tokens':args.max_new_tokens}]
@@ -44,6 +45,7 @@ def main():
             'ttft_ms':None if r.first_token_at is None else (r.first_token_at-r.submitted_at)*1000})
     print(json.dumps({'device':args.device,'weights':'pretrained-local' if tokenizer else 'random-toy',
                       'requests':result},indent=2))
+    model.close()
 
 
 if __name__=='__main__': main()
