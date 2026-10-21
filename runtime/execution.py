@@ -116,8 +116,10 @@ class ModelProgram:
             ready=self.input[name].upload(value,self.device.transfer)
             self.device.compute.wait(ready)
         with self.device.compute.stream:
+            timer=self.runner.profiler.begin_device(self.device.compute.stream)
             if self.graph is None: self._ops()
             else: self.graph.launch(stream=self.device.compute.stream)
+            self.runner.profiler.end_device('model_program',timer,self.device.compute.stream)
             self.last_event=self.device.compute.record()
         self.device.compute.submissions+=1;self.replays+=1
         for cache in self.model.caches:
@@ -133,19 +135,23 @@ class ModelProgram:
 
 
 class ExecutionRuntime:
-    def __init__(self,model,mode='graph',capacity=4,workspace_budget_bytes=None):
+    def __init__(self,model,mode='graph',capacity=4,workspace_budget_bytes=None,profile=False):
         if mode not in ['graph','buffered']: raise ValueError('unknown execution mode')
         self.model=model;self.mode=mode;self.device=DeviceRuntime(model.backend)
         from .blas import Blas
         self.blas=Blas(self.device.compute.stream)
+        from .profiler import Profiler
+        self.profiler=Profiler(model.xp,enabled=profile)
         self.kernels=KernelLibrary(model.backend);self.cache=ProgramCache(capacity)
         self.workspace_budget_bytes=workspace_budget_bytes
         self.page_size=model.caches[0].page_size
 
     def step(self,tokens,keys):
         signature=(len(keys),self.mode)
-        program=self.cache.get_or_create(signature,lambda:ModelProgram(self,len(keys)))
-        return program.run(tokens,keys)
+        with self.profiler.region('program_lookup',batch=len(keys)):
+            program=self.cache.get_or_create(signature,lambda:ModelProgram(self,len(keys)))
+        with self.profiler.region('model_step',batch=len(keys),mode=self.mode):
+            return program.run(tokens,keys)
 
     def report(self):
         return {**self.cache.report(),'mode':self.mode,
