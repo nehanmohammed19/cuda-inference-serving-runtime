@@ -36,3 +36,13 @@ boundary pages, GQA, tail dimensions, cache eviction, event ownership and output
 agreement. No architecture-specific term is a capability claim without executable
 code and a test/measurement. Native C++ hosting, multi-GPU and Hopper TMA/WGMMA
 are outside this Ada implementation.
+
+## Outcome
+
+Implemented device queues/events, pinned inputs, sealed workspaces, bounded
+program caching, a capture-safe cuBLAS binding, full-forward model graphs, fused
+operators, warp attention, scheduler integration, a local JSON/SSE service,
+profiling exports and CI workflows. Twenty-six tests passed locally including GPU
+execution. Actual pretrained, kernel-sweep, scheduler and loopback HTTP results
+are in results/expansion. Cross-request IO overlap, hardware-counter profiling and
+native C++ hosting remain explicitly outside the demonstrated capabilities.

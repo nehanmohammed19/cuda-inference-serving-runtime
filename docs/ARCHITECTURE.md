@@ -1,5 +1,10 @@
 # Architecture and engineering notes
 
+This document describes the initial eager baseline. For the subsequently added
+whole-model graph runtime, device queues, program cache and HTTP worker, see
+[RUNTIME.md](RUNTIME.md). Statements about missing graph capture below refer to
+the original eager path, which remains available for comparison.
+
 ## Execution path
 
 `Request -> Engine.tick -> Model.step -> Backend -> CUDA / library GEMM`
