@@ -1,0 +1,12 @@
+name: GPU correctness (configured self-hosted runner)
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: [self-hosted, gpu]
+    env:
+      RUN_CUDA_TESTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m unittest discover -s tests -v
+      # A runner with the CUDA toolkit can additionally run:
+      # compute-sanitizer --tool memcheck python -m unittest discover -s tests -p test_execution.py
