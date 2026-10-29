@@ -1,0 +1,243 @@
+{
+  "traceEvents": [
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 4714.100039564073,
+      "dur": 4.800036549568176,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 4728.400032036006,
+      "dur": 302.29997355490923,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5083.6000591516495,
+      "dur": 3.00002284348011,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5092.100007459521,
+      "dur": 284.90007389336824,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5423.600086942315,
+      "dur": 3.0999071896076202,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5431.400029920042,
+      "dur": 268.40006466954947,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5746.499984525144,
+      "dur": 2.300017513334751,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 5753.000034019351,
+      "dur": 320.0999926775694,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6126.60008482635,
+      "dur": 3.1999079510569572,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6134.600029326975,
+      "dur": 355.1000263541937,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6533.800042234361,
+      "dur": 2.700020559132099,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6549.200043082237,
+      "dur": 293.40002220124006,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6894.099991768599,
+      "dur": 2.500019036233425,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 6901.000044308603,
+      "dur": 394.799979403615,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    },
+    {
+      "name": "program_lookup",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 7363.80007583648,
+      "dur": 3.6999117583036423,
+      "args": {
+        "batch": 1
+      }
+    },
+    {
+      "name": "model_step",
+      "cat": "host",
+      "ph": "X",
+      "pid": 1,
+      "tid": 1,
+      "ts": 7374.10003785044,
+      "dur": 386.80003490298986,
+      "args": {
+        "batch": 1,
+        "mode": "graph"
+      }
+    }
+  ],
+  "displayTimeUnit": "ms",
+  "metadata": {
+    "clock": "host perf_counter; device durations separate",
+    "nvtx_enabled": false
+  },
+  "cuda_event_intervals": [
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.05315199866890907
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.053247999399900436
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.054207999259233475
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.05427199974656105
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.10847999900579453
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.05427199974656105
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.058368001133203506
+    },
+    {
+      "name": "model_program",
+      "elapsed_ms": 0.06143999844789505
+    }
+  ]
+}
