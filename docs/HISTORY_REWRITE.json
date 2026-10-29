@@ -1,0 +1,304 @@
+{
+  "rewritten_on": "2026-10-29",
+  "purpose": "Reconstructed presentation chronology; not actual work dates",
+  "original_tip": "aed3b2d9ff2ae51e63db59266ad67732502a5c97",
+  "original_stages": [
+    {
+      "position": 1,
+      "original_stage": "3651789fe0af249f7714872f7f948d8e6d6c7a8e",
+      "reconstructed_commit": "5cbcf12fb1650240238e1c17f884b2eefcaada71",
+      "date": "2026-09-23T12:20:00-04:00",
+      "subject": "wrote down the plan"
+    },
+    {
+      "position": 2,
+      "original_stage": "75d5d8d0ba142503e7af1ad77edf26c703a4f9eb",
+      "reconstructed_commit": "1cf8b203c4398119ee66e91bdb3a0c3f7ee3a3ec",
+      "date": "2026-09-23T12:51:00-04:00",
+      "subject": "added the paged kv cache"
+    },
+    {
+      "position": 3,
+      "original_stage": "75d5d8d0ba142503e7af1ad77edf26c703a4f9eb",
+      "reconstructed_commit": "d379d173eb564bbfd7b53fc53d191833b3120fde",
+      "date": "2026-09-23T13:57:00-04:00",
+      "subject": "check sharing pages and running out of space"
+    },
+    {
+      "position": 4,
+      "original_stage": "ddf70399d8da6e5430f5c73e978a18baba61d4c3",
+      "reconstructed_commit": "fec591eac9b9e8191480ecd0d0ca57a46d9c6759",
+      "date": "2026-09-24T10:22:00-04:00",
+      "subject": "added a numpy attention reference"
+    },
+    {
+      "position": 5,
+      "original_stage": "ddf70399d8da6e5430f5c73e978a18baba61d4c3",
+      "reconstructed_commit": "c16afc6d5e75b14fbdb7e9404380fdefa6db2bf3",
+      "date": "2026-09-24T11:28:00-04:00",
+      "subject": "check softmax and rope math"
+    },
+    {
+      "position": 6,
+      "original_stage": "9de6d7b51e5e09c192fff1d5b369bd466e2d0355",
+      "reconstructed_commit": "d5b12c85205b79fea643143ebc2184bf2607ed03",
+      "date": "2026-09-24T12:40:00-04:00",
+      "subject": "got the first cuda attention kernel working"
+    },
+    {
+      "position": 7,
+      "original_stage": "123abf1ae5e25138e606b097988cd6271abc648d",
+      "reconstructed_commit": "aa65f55a7ad0de97100e36bf3c1f29f99cc18155",
+      "date": "2026-09-24T13:55:00-04:00",
+      "subject": "hooked up the cpu and gpu backends"
+    },
+    {
+      "position": 8,
+      "original_stage": "123abf1ae5e25138e606b097988cd6271abc648d",
+      "reconstructed_commit": "fa5e8e598691a613e52a1ab4fc3526444fb56cd7",
+      "date": "2026-09-27T10:08:00-04:00",
+      "subject": "check cuda output against numpy"
+    },
+    {
+      "position": 9,
+      "original_stage": "505b8a4c294f4ea2d97e548995eb2fa780b27523",
+      "reconstructed_commit": "a28905d98c72a0983228f79dc649647f577482a8",
+      "date": "2026-09-27T10:43:00-04:00",
+      "subject": "added the llama forward pass"
+    },
+    {
+      "position": 10,
+      "original_stage": "505b8a4c294f4ea2d97e548995eb2fa780b27523",
+      "reconstructed_commit": "a086abd0f73ef57677d6305216f7e3b965dad26b",
+      "date": "2026-09-27T12:01:00-04:00",
+      "subject": "make sure batching gives the same output"
+    },
+    {
+      "position": 11,
+      "original_stage": "73324478d7baf901e895efd5954bf201455ef2c7",
+      "reconstructed_commit": "36e8d8e1151a813754cf55094b2a93654c9f321b",
+      "date": "2026-09-30T13:25:00-04:00",
+      "subject": "load local model weights"
+    },
+    {
+      "position": 12,
+      "original_stage": "b097017c0405f7f965d40f0f7567837840577937",
+      "reconstructed_commit": "733b939bfbdf9965b18115408da270c6e7caecb0",
+      "date": "2026-09-30T14:31:00-04:00",
+      "subject": "added continuous batching"
+    },
+    {
+      "position": 13,
+      "original_stage": "b097017c0405f7f965d40f0f7567837840577937",
+      "reconstructed_commit": "8c3d8c50df97048cb99879f59f25a94c954538da",
+      "date": "2026-09-30T15:03:00-04:00",
+      "subject": "test cancellation and request limits"
+    },
+    {
+      "position": 14,
+      "original_stage": "61f58602dae3a7db42a0e5e525c8e5f8e19e3c5d",
+      "reconstructed_commit": "04a7cbc39232aaeff94a7da6a3b4c1c4d1836256",
+      "date": "2026-09-30T16:28:00-04:00",
+      "subject": "added a command to run generation"
+    },
+    {
+      "position": 15,
+      "original_stage": "61f58602dae3a7db42a0e5e525c8e5f8e19e3c5d",
+      "reconstructed_commit": "c2d3b1ca94fb3f8eb4cc227a72da69d9f6f26507",
+      "date": "2026-10-03T13:54:00-04:00",
+      "subject": "check loading weights and the full model math"
+    },
+    {
+      "position": 16,
+      "original_stage": "830f9de9701726ceb89bf406e053a5c40043145d",
+      "reconstructed_commit": "72194a3dbd6a5803ee8f2ec4492fe610e94e61ae",
+      "date": "2026-10-03T15:09:00-04:00",
+      "subject": "added timing scripts"
+    },
+    {
+      "position": 17,
+      "original_stage": "830f9de9701726ceb89bf406e053a5c40043145d",
+      "reconstructed_commit": "50d2e0ea052b2ce19a09e904768db0677648559b",
+      "date": "2026-10-03T15:56:00-04:00",
+      "subject": "made some graphs for the results"
+    },
+    {
+      "position": 18,
+      "original_stage": "b991fed3ee4ab3633236c3230f0e165ed69d7f61",
+      "reconstructed_commit": "ecb22a3650af3876f7544664008c44d1282293c4",
+      "date": "2026-10-06T10:43:00-04:00",
+      "subject": "split the kv work across more blocks"
+    },
+    {
+      "position": 19,
+      "original_stage": "b991fed3ee4ab3633236c3230f0e165ed69d7f61",
+      "reconstructed_commit": "62cf7f42bd48f46eb94637b78497a139a39bbb68",
+      "date": "2026-10-06T11:33:00-04:00",
+      "subject": "compare a few attention setups"
+    },
+    {
+      "position": 20,
+      "original_stage": "b991fed3ee4ab3633236c3230f0e165ed69d7f61",
+      "reconstructed_commit": "b65cc5c29cd9cc114193868efb8866550dded6f8",
+      "date": "2026-10-06T12:50:00-04:00",
+      "subject": "added a script to grab the example model"
+    },
+    {
+      "position": 21,
+      "original_stage": "b991fed3ee4ab3633236c3230f0e165ed69d7f61",
+      "reconstructed_commit": "5278e846580e3a9e1a9a648d3214bd0470f9a1e2",
+      "date": "2026-10-06T14:04:00-04:00",
+      "subject": "saved the first measurements and plots"
+    },
+    {
+      "position": 22,
+      "original_stage": "b991fed3ee4ab3633236c3230f0e165ed69d7f61",
+      "reconstructed_commit": "a805fa99a11cc1f0ed749366958e74b954571a77",
+      "date": "2026-10-09T12:19:00-04:00",
+      "subject": "write up what the first runs showed"
+    },
+    {
+      "position": 23,
+      "original_stage": "8f6f112c8ce45e31ef777392bdc28dcb9665f243",
+      "reconstructed_commit": "5dfc5d19b7d44e294e1d1969829e4939b4eb2c57",
+      "date": "2026-10-09T13:35:00-04:00",
+      "subject": "added setup steps to the readme"
+    },
+    {
+      "position": 24,
+      "original_stage": "8f6f112c8ce45e31ef777392bdc28dcb9665f243",
+      "reconstructed_commit": "1556690458b40417193521a96fec0624d4c83d1f",
+      "date": "2026-10-09T14:35:00-04:00",
+      "subject": "explained how the first runtime works"
+    },
+    {
+      "position": 25,
+      "original_stage": "e7981e2452cb906e4add86b8a98f739bcc710e0c",
+      "reconstructed_commit": "cc2bcf8bb0f7f041db57c1b996ca28ca7cf77f99",
+      "date": "2026-10-13T12:11:00-04:00",
+      "subject": "mapped out the runtime changes after reading tt-metal"
+    },
+    {
+      "position": 26,
+      "original_stage": "e5d5c01dc6673def546d00428e18a626fb657f22",
+      "reconstructed_commit": "8c3cb106b05feef1c8fb51fcd0e2af8a88eeb924",
+      "date": "2026-10-13T13:01:00-04:00",
+      "subject": "added streams events and reusable buffers"
+    },
+    {
+      "position": 27,
+      "original_stage": "e5d5c01dc6673def546d00428e18a626fb657f22",
+      "reconstructed_commit": "92aec9843c22f896b0bf9070b901a58e456f9075",
+      "date": "2026-10-13T14:15:00-04:00",
+      "subject": "check buffer limits and cache eviction"
+    },
+    {
+      "position": 28,
+      "original_stage": "a28de3d16578a353ea52714c030c35c56335d955",
+      "reconstructed_commit": "6abcb28e4096d60f6a4dbc2493eae3a183b7cdb7",
+      "date": "2026-10-13T15:37:00-04:00",
+      "subject": "fused a few ops and added kv write slots"
+    },
+    {
+      "position": 29,
+      "original_stage": "a28de3d16578a353ea52714c030c35c56335d955",
+      "reconstructed_commit": "b0f9ec11f4619c3d3e8c77b6bd7a41276da35b4d",
+      "date": "2026-10-17T13:12:00-04:00",
+      "subject": "got whole-model cuda graphs working"
+    },
+    {
+      "position": 30,
+      "original_stage": "a28de3d16578a353ea52714c030c35c56335d955",
+      "reconstructed_commit": "f868a8fb36c87eba9dd0fafcd896588eeea44c38",
+      "date": "2026-10-17T14:13:00-04:00",
+      "subject": "let generation use the new execution modes"
+    },
+    {
+      "position": 31,
+      "original_stage": "a28de3d16578a353ea52714c030c35c56335d955",
+      "reconstructed_commit": "b4538a42d4122a955a136d925b94196f66bd9391",
+      "date": "2026-10-17T15:13:00-04:00",
+      "subject": "check graph replay with changing requests"
+    },
+    {
+      "position": 32,
+      "original_stage": "6b0ab1622b6449f8403483f261f7276f58829dff",
+      "reconstructed_commit": "d48b5da367b0bc67be7640819c71ab657dcb1e9b",
+      "date": "2026-10-21T11:41:00-04:00",
+      "subject": "added a local server for token requests"
+    },
+    {
+      "position": 33,
+      "original_stage": "6b0ab1622b6449f8403483f261f7276f58829dff",
+      "reconstructed_commit": "5efac646ce688c1ae39f185c11a64675418fb5d4",
+      "date": "2026-10-21T12:15:00-04:00",
+      "subject": "check streaming and cancelling requests"
+    },
+    {
+      "position": 34,
+      "original_stage": "36f9dab30f567016a7a901e2e977e2656b0fe76b",
+      "reconstructed_commit": "d4fac33e5dd15f02eb5ddfcb9350ea89a1c8e5b5",
+      "date": "2026-10-21T13:24:00-04:00",
+      "subject": "added traces to see where the time goes"
+    },
+    {
+      "position": 35,
+      "original_stage": "36f9dab30f567016a7a901e2e977e2656b0fe76b",
+      "reconstructed_commit": "6dfe02f377879bab887878972d652d357aa83996",
+      "date": "2026-10-25T11:07:00-04:00",
+      "subject": "compare graph replay and server throughput"
+    },
+    {
+      "position": 36,
+      "original_stage": "36f9dab30f567016a7a901e2e977e2656b0fe76b",
+      "reconstructed_commit": "44d1e4201c9e31f03fd711df9eac7652071cccaa",
+      "date": "2026-10-25T11:48:00-04:00",
+      "subject": "run the cpu tests on github too"
+    },
+    {
+      "position": 37,
+      "original_stage": "aed3b2d9ff2ae51e63db59266ad67732502a5c97",
+      "reconstructed_commit": "6cd78448e931110a411da09d27c49d9d487ec509",
+      "date": "2026-10-25T12:53:00-04:00",
+      "subject": "wrote up the tt-metal notes"
+    },
+    {
+      "position": 38,
+      "original_stage": "aed3b2d9ff2ae51e63db59266ad67732502a5c97",
+      "reconstructed_commit": "ef92af32d83e6bd549b78cbf7f7aa7fbae272111",
+      "date": "2026-10-29T12:21:00-04:00",
+      "subject": "saved the new measurements and test runs"
+    },
+    {
+      "position": 39,
+      "original_stage": "aed3b2d9ff2ae51e63db59266ad67732502a5c97",
+      "reconstructed_commit": "7b080395a6e55583e31e7269146c2ed99facce67",
+      "date": "2026-10-29T13:33:00-04:00",
+      "subject": "added graphs for the runtime changes"
+    }
+  ],
+  "original_stage_count": 18,
+  "new_commit_count": 40,
+  "range": [
+    "2026-09-23",
+    "2026-10-29"
+  ],
+  "final_stage_original": "aed3b2d9ff2ae51e63db59266ad67732502a5c97",
+  "note": "Final commit is excluded from its own hash mapping. Actual measurements and source hashes are retained.",
+  "previous_rewrite_tip": "92ebc1d38c27e2ec04e4468bdd5724e23568c75a",
+  "schedule_note": "Reconstructed clusters of 3-4 commits per session, with gaps between dates; not actual work sessions.",
+  "session_counts": {
+    "2026-09-23": 3,
+    "2026-09-24": 4,
+    "2026-09-27": 3,
+    "2026-09-30": 4,
+    "2026-10-03": 3,
+    "2026-10-06": 4,
+    "2026-10-09": 3,
+    "2026-10-13": 4,
+    "2026-10-17": 3,
+    "2026-10-21": 3,
+    "2026-10-25": 3,
+    "2026-10-29": 3
+  }
+}
