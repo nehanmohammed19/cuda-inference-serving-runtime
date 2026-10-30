@@ -1,12 +1,12 @@
-// These FP32 kernels favor a transparent correctness baseline over peak throughput.
+// FP16/BF16 storage with FP32 reduction and softmax accumulation.
 // One block handles a row/head. No scores matrix is materialized in attention.
-extern "C" __global__ void rms(const float* x, const float* w, float* y,
+extern "C" __global__ void rms(const scalar_t* x, const scalar_t* w, scalar_t* y,
                                int dim, float eps) {
     __shared__ float partial[256];
     int row = blockIdx.x, lane = threadIdx.x;
     float sum = 0;
     for (int d = lane; d < dim; d += blockDim.x) {
-        float a = x[row * dim + d]; sum += a * a;
+        float a = read_scalar(x[row * dim + d]); sum += a * a;
     }
     partial[lane] = sum; __syncthreads();
     for (int stride = 128; stride; stride >>= 1) {
@@ -15,11 +15,11 @@ extern "C" __global__ void rms(const float* x, const float* w, float* y,
     }
     float scale = rsqrtf(partial[0] / dim + eps);
     for (int d = lane; d < dim; d += blockDim.x)
-        y[row * dim + d] = x[row * dim + d] * scale * w[d];
+        y[row * dim + d] = write_scalar(read_scalar(x[row * dim + d]) * scale * read_scalar(w[d]));
 }
 
-extern "C" __global__ void rotate(const float* x, const int* positions,
-                                  float* y, int heads, int dim, float theta) {
+extern "C" __global__ void rotate(const scalar_t* x, const int* positions,
+                                  scalar_t* y, int heads, int dim, float theta) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     int half = dim / 2;
     int batch = blockIdx.y;
@@ -28,14 +28,14 @@ extern "C" __global__ void rotate(const float* x, const int* positions,
     int base = (batch * heads + head) * dim;
     float angle = positions[batch] * powf(theta, -2.0f * d / dim);
     float c = cosf(angle), s = sinf(angle);
-    float a = x[base+d], b = x[base+d+half];
-    y[base+d] = a*c-b*s; y[base+d+half] = b*c+a*s;
+    float a = read_scalar(x[base+d]), b = read_scalar(x[base+d+half]);
+    y[base+d] = write_scalar(a*c-b*s); y[base+d+half] = write_scalar(b*c+a*s);
 }
 
 // Split a long context into independent CTA reductions, then merge their
 // (maximum, denominator, normalized output) triples using log-sum-exp weights.
 extern "C" __global__ void split_attention(
-    const float* q, const float* k, const float* v, const int* tables,
+    const scalar_t* q, const scalar_t* k, const scalar_t* v, const int* tables,
     const int* lengths, float* partial, float* stats, int width, int page_size,
     int query_heads, int kv_heads, int dim, int splits) {
     __shared__ float dot[256];
@@ -51,7 +51,7 @@ extern "C" __global__ void split_attention(
     for(int t=begin;t<end;++t){
         int page=tables[row*width+t/page_size];
         long long base=((long long)page*page_size+t%page_size)*kv_heads*dim+kh*dim;
-        dot[lane]=lane<dim?q[qb+lane]*k[base+lane]:0;
+        dot[lane]=lane<dim?read_scalar(q[qb+lane])*read_scalar(k[base+lane]):0;
         __syncthreads();
         for(int stride=128;stride;stride>>=1){
             if(lane<stride)dot[lane]+=dot[lane+stride];
@@ -62,7 +62,7 @@ extern "C" __global__ void split_attention(
             alpha=expf(m-next);beta=expf(score-next);l=alpha*l+beta;m=next;
         }
         __syncthreads();
-        if(lane<dim)accumulator=alpha*accumulator+beta*v[base+lane];
+        if(lane<dim)accumulator=alpha*accumulator+beta*read_scalar(v[base+lane]);
         __syncthreads();
     }
     if(lane<dim)partial[part*dim+lane]=l>0?accumulator/l:0;
@@ -70,7 +70,7 @@ extern "C" __global__ void split_attention(
 }
 
 extern "C" __global__ void merge_attention(const float* partial,const float* stats,
-                                           float* out,int heads,int dim,int splits){
+                                           scalar_t* out,int heads,int dim,int splits){
     int d=threadIdx.x,row=blockIdx.x,head=blockIdx.y;
     if(d>=dim)return;
     int base=(row*heads+head)*splits;
@@ -82,12 +82,12 @@ extern "C" __global__ void merge_attention(const float* partial,const float* sta
         float weight=l>0?expf(stats[(base+s)*2]-maximum)*l:0;
         denominator+=weight;numerator+=weight*partial[(base+s)*dim+d];
     }
-    out[(row*heads+head)*dim+d]=numerator/denominator;
+    out[(row*heads+head)*dim+d]=write_scalar(numerator/denominator);
 }
 
 extern "C" __global__ void paged_attention(
-    const float* q, const float* k, const float* v, const int* tables,
-    const int* lengths, float* out, int width, int page_size,
+    const scalar_t* q, const scalar_t* k, const scalar_t* v, const int* tables,
+    const int* lengths, scalar_t* out, int width, int page_size,
     int query_heads, int kv_heads, int dim) {
     // Exactly 256 threads, dim <= 256. Each thread owns one output coordinate.
     __shared__ float dot[256];
@@ -102,7 +102,7 @@ extern "C" __global__ void paged_attention(
         int page = tables[row * width + token / page_size];
         long long base = ((long long)page * page_size + token % page_size)
                          * kv_heads * dim + kv_head * dim;
-        dot[lane] = lane < dim ? q[qbase+lane] * k[base+lane] : 0;
+        dot[lane] = lane < dim ? read_scalar(q[qbase+lane]) * read_scalar(k[base+lane]) : 0;
         __syncthreads();
         for (int stride = 128; stride; stride >>= 1) {
             if (lane < stride) dot[lane] += dot[lane+stride];
@@ -115,9 +115,9 @@ extern "C" __global__ void paged_attention(
             l = alpha*l + beta; m = next_m;
         }
         __syncthreads();
-        if (lane < dim) accumulator = alpha*accumulator + beta*v[base+lane];
+        if (lane < dim) accumulator = alpha*accumulator + beta*read_scalar(v[base+lane]);
         // alpha/beta cannot be overwritten until every lane has consumed them.
         __syncthreads();
     }
-    if (lane < dim) out[qbase+lane] = accumulator / l;
+    if (lane < dim) out[qbase+lane] = write_scalar(accumulator / l);
 }

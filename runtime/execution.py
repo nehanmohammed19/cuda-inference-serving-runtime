@@ -13,8 +13,7 @@ from .device import DeviceRuntime,ProgramCache,Workspace,StagingBuffer
 class KernelLibrary:
     def __init__(self,backend):
         self.backend=backend; cp=backend.xp
-        source=(Path(__file__).parents[1]/'kernels/execution.cu').read_text()
-        self.module=cp.RawModule(code=source,options=('--std=c++11',))
+        self.module=backend.compile('execution.cu')
         self.functions={name:self.module.get_function(name) for name in [
             'embedding','swiglu','residual_norm','rope_scatter','add_residual','warp_attention']}
 
@@ -40,7 +39,8 @@ class ModelProgram:
             ('gate',(batch,c.intermediate_size)),('up',(batch,c.intermediate_size)),
             ('activated',(batch,c.intermediate_size)),('down',(batch,c.hidden_size)),
             ('logits',(batch,c.vocab_size)),('stats',(batch,c.num_attention_heads,1,2))]:
-            self.arrays[name]=self.workspace.allocate(name,shape)
+            self.arrays[name]=self.workspace.allocate(name,shape,
+                np.float32 if name=='stats' else self.model.backend.storage_dtype)
         self.workspace.seal()
         self.model.backend.sync()
         with self.device.compute.stream:
@@ -126,7 +126,7 @@ class ModelProgram:
             for key in keys: cache.lengths[key]+=1
         # Publish completion to the caller's stream before it consumes logits.
         self.cp.cuda.get_current_stream().wait_event(self.last_event)
-        return self.arrays['logits']
+        return self.model.backend.floating(self.arrays['logits'])
 
     def close(self):
         if self.last_event is not None: self.last_event.synchronize()
@@ -139,7 +139,7 @@ class ExecutionRuntime:
         if mode not in ['graph','buffered']: raise ValueError('unknown execution mode')
         self.model=model;self.mode=mode;self.device=DeviceRuntime(model.backend)
         from .blas import Blas
-        self.blas=Blas(self.device.compute.stream)
+        self.blas=Blas(self.device.compute.stream,dtype=model.backend.dtype)
         from .profiler import Profiler
         self.profiler=Profiler(model.xp,enabled=profile)
         self.kernels=KernelLibrary(model.backend);self.cache=ProgramCache(capacity)

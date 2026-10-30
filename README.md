@@ -4,12 +4,12 @@ A single-GPU inference runtime that connects CUDA kernels, memory ownership,
 program caching, graph execution and continuous request batching.
 
 **Research implementation:** Python host runtime; C++ CUDA kernels; explicit
-cuBLAS binding for graph-safe FP32 GEMM. Tested on an RTX 4060 Laptop GPU (8 GB).
+cuBLAS binding for graph-safe FP16/BF16 GEMM with FP32 accumulation. Tested on an RTX 4060 Laptop GPU (8 GB).
 It is not a native C++ host runtime or a replacement for TensorRT-LLM.
 
 ## Measured progress
 
-**26 tests pass**, including GPU replay with changing inputs/batches, GQA, tail
+**29 tests pass**, including GPU replay with changing inputs/batches, GQA, tail
 head dimensions, KV copy-on-write, page reuse, program eviction, CPU numerical
 agreement, HTTP JSON responses and server-sent token events.
 
@@ -89,7 +89,8 @@ Actual driver/runtime reports are retained in the results JSON.
 ```powershell
 python -m runtime --device cpu --tokens 1,2,3 --max-new-tokens 8
 python -m runtime --device cuda --execution eager --tokens 1,2,3
-python -m runtime --device cuda --execution graph --tokens 1,2,3
+python -m runtime --device cuda --execution graph --dtype float16 --tokens 1,2,3
+python -m runtime --device cuda --execution graph --dtype bfloat16 --tokens 1,2,3
 ```
 
 Toy weights are random; their token IDs are not meaningful language. For a real
@@ -104,8 +105,9 @@ python -m runtime --device cuda --execution graph --checkpoint checkpoints/SmolL
 The original pretrained smoke output and checkpoint hashes are in `results/`.
 Weights are excluded from Git. Standard Llama configurations with even head
 dimensions <=256 are supported. Scaled RoPE, projection biases, nonstandard head
-dimensions, quantized checkpoints and non-SiLU activations are rejected. Storage
-FP16/BF16 is converted to FP32 execution. The text CLI accepts one EOS ID.
+dimensions, quantized checkpoints and non-SiLU activations are rejected. CUDA execution supports FP16 and BF16 weights, activations and KV storage,
+with FP32 accumulation. The CUDA CLI/service default to FP16; CPU/reference
+execution stays FP32. The text CLI accepts one EOS ID.
 Checkpoint/model execution has not been checked against Transformers as an
 independent framework; the tests include an independent NumPy dense model path.
 
@@ -121,6 +123,16 @@ The CLI accepts `--requests` with a JSON list of token-ID requests:
 ```powershell
 python -m runtime --device cuda --execution graph --requests requests.json --policy decode_first --token-budget 2
 ```
+
+Precision can be selected with `--dtype float16`, `--dtype bfloat16`, or
+`--dtype float32`. The Python API uses `Backend("cuda", dtype="bfloat16")`.
+FP32 remains the API/reference default so archived FP32 experiments remain
+reproducible. BF16 uses 16-bit storage with CUDA conversion kernels because CuPy
+has no native BF16 arithmetic dtype. Both reduced formats use the existing
+buffered operator sequence or its captured graph, including cuBLAS GEMM with
+FP32 accumulation. Norm/softmax reductions and split-attention statistics remain
+FP32. The saved performance figures above were measured in FP32 and have not been
+relabelled as FP16/BF16 results.
 
 ## Serve concurrent requests locally
 
@@ -171,7 +183,7 @@ here. See [runtime invariants and profiling](docs/RUNTIME.md).
 
 Prefill still consumes prompt tokens sequentially. The graph path removes dispatch
 work and fuses operations; it does not implement parallel FlashAttention prefill.
-Other remaining work includes reduced-precision/Tensor Core attention, automatic
+Other remaining work includes Tensor Core attention, automatic
 prefix lookup, adaptive partition dispatch, true transfer/compute overlap across
 requests, multi-GPU and native C++ hosting. The deferred-retirement primitive is
 tested; model page release still waits for completion before recycling memory.
@@ -179,7 +191,7 @@ tested; model page release still waits for completion before recycling memory.
 ## History provenance
 
 This repository was implemented with AI assistance on October 29, 2026.
-At the user's request, its **40 non-empty commits** use a reconstructed timeline
+At the user's request, its **first 40 non-empty commits** use a reconstructed timeline
 from **September 23 through October 29, 2026**. The changes were split from the
 existing implementation history; these dates do not establish days worked or
 manual authorship. Every commit labels the reconstruction. Benchmark execution

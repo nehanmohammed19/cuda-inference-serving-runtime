@@ -11,6 +11,8 @@ from .engine import Engine,Request
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device',choices=['cpu','cuda'],default='cpu')
+    parser.add_argument('--dtype',choices=['float32','float16','bfloat16'],
+                        help='defaults to float16 on CUDA, float32 on CPU')
     parser.add_argument('--execution',choices=['eager','buffered','graph'],default='eager')
     parser.add_argument('--checkpoint',type=Path)
     parser.add_argument('--prompt',default='The capital of France is')
@@ -30,7 +32,8 @@ def main():
         prompt=tokenizer.encode(args.prompt).ids
     else:
         c=Config(); w=toy_weights(c); prompt=[int(t) for t in args.tokens.split(',')]
-    model=Model(Backend(args.device),c,w,pages=args.pages,page_size=args.page_size,execution=args.execution)
+    dtype=args.dtype or ('float16' if args.device=='cuda' else 'float32')
+    model=Model(Backend(args.device,dtype=dtype),c,w,pages=args.pages,page_size=args.page_size,execution=args.execution)
     engine=Engine(model,policy=args.policy,token_budget=args.token_budget,prefill_chunk=args.prefill_chunk)
     inputs=json.loads(args.requests.read_text()) if args.requests else [
         {'key':'request-0','prompt':prompt,'max_new_tokens':args.max_new_tokens}]
@@ -43,7 +46,7 @@ def main():
         result.append({'key':r.key,'status':r.status,'generated':r.generated,
             'text':tokenizer.decode(r.generated) if tokenizer else None,
             'ttft_ms':None if r.first_token_at is None else (r.first_token_at-r.submitted_at)*1000})
-    print(json.dumps({'device':args.device,'weights':'pretrained-local' if tokenizer else 'random-toy',
+    print(json.dumps({'device':args.device,'dtype':dtype,'weights':'pretrained-local' if tokenizer else 'random-toy',
                       'requests':result},indent=2))
     model.close()
 

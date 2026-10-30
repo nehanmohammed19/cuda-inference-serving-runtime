@@ -7,11 +7,11 @@ import numpy as np
 
 
 class PagedCache:
-    def __init__(self, xp, pages, page_size, heads, dim):
+    def __init__(self, xp, pages, page_size, heads, dim, dtype=np.float32):
         if min(pages, page_size, heads, dim) <= 0:
             raise ValueError('cache dimensions must be positive')
         self.xp, self.page_size = xp, page_size
-        self.k = xp.zeros((pages, page_size, heads, dim), dtype=xp.float32)
+        self.k = xp.zeros((pages, page_size, heads, dim), dtype=dtype)
         self.v = xp.zeros_like(self.k)
         self.refs = np.zeros(pages, dtype=np.int32)
         self.free = list(reversed(range(pages)))

@@ -1,7 +1,7 @@
-"""Small explicit cuBLAS host binding for capture-safe FP32 GEMM.
+"""Explicit cuBLAS binding for capture-safe FP32/FP16/BF16 GEMM.
 
 CuPy's high-level matmul wrapper rejects stream capture on the tested version.
-We bind one cuBLAS handle to the execution stream before capture and call SGEMM
+We bind one cuBLAS handle to the execution stream before capture and call GEMM
 without modifying handle state inside the captured region.
 """
 import ctypes as ct
@@ -11,7 +11,8 @@ import sys
 
 
 class Blas:
-    def __init__(self,stream):
+    def __init__(self,stream,dtype='float32'):
+        self.dtype=dtype
         if sys.platform=='win32':
             candidates=[p for root in site.getsitepackages()
                         for p in Path(root).glob('nvidia/cublas/bin/cublas64_12.dll')]
@@ -25,6 +26,10 @@ class Blas:
         self.lib.cublasSgemm_v2.argtypes=[ct.c_void_p,ct.c_int,ct.c_int,
             ct.c_int,ct.c_int,ct.c_int,ct.POINTER(ct.c_float),ct.c_void_p,ct.c_int,
             ct.c_void_p,ct.c_int,ct.POINTER(ct.c_float),ct.c_void_p,ct.c_int]
+        self.lib.cublasGemmEx.argtypes=[ct.c_void_p,ct.c_int,ct.c_int,
+            ct.c_int,ct.c_int,ct.c_int,ct.POINTER(ct.c_float),ct.c_void_p,ct.c_int,ct.c_int,
+            ct.c_void_p,ct.c_int,ct.c_int,ct.POINTER(ct.c_float),ct.c_void_p,ct.c_int,ct.c_int,
+            ct.c_int,ct.c_int]
         self._check(self.lib.cublasCreate_v2(ct.byref(self.handle)))
         self._check(self.lib.cublasSetStream_v2(self.handle,ct.c_void_p(stream.ptr)))
         self.alpha,self.beta=ct.c_float(1),ct.c_float(0)
@@ -38,9 +43,16 @@ class Blas:
         if weight.shape[1]!=inner or out.shape!=(batch,outer):
             raise ValueError('incompatible GEMM output dimensions')
         # Transpose the row-major result conceptually: C^T = W * X^T.
-        status=self.lib.cublasSgemm_v2(self.handle,1,0,outer,batch,inner,
-            ct.byref(self.alpha),ct.c_void_p(weight.data.ptr),inner,
-            ct.c_void_p(x.data.ptr),inner,ct.byref(self.beta),ct.c_void_p(out.data.ptr),outer)
+        if self.dtype=='float32':
+            status=self.lib.cublasSgemm_v2(self.handle,1,0,outer,batch,inner,
+                ct.byref(self.alpha),ct.c_void_p(weight.data.ptr),inner,
+                ct.c_void_p(x.data.ptr),inner,ct.byref(self.beta),ct.c_void_p(out.data.ptr),outer)
+        else:
+            datatype=2 if self.dtype=='float16' else 14  # CUDA_R_16F / CUDA_R_16BF
+            status=self.lib.cublasGemmEx(self.handle,1,0,outer,batch,inner,
+                ct.byref(self.alpha),ct.c_void_p(weight.data.ptr),datatype,inner,
+                ct.c_void_p(x.data.ptr),datatype,inner,ct.byref(self.beta),
+                ct.c_void_p(out.data.ptr),datatype,outer,68,-1)  # CUBLAS_COMPUTE_32F, default algo
         self._check(status)
 
     def close(self):

@@ -163,6 +163,7 @@ def make_server(worker,host='127.0.0.1',port=8080):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--device',choices=['cpu','cuda'],default='cpu')
+    parser.add_argument('--dtype',choices=['float32','float16','bfloat16'])
     parser.add_argument('--execution',choices=['eager','buffered','graph'],default='eager')
     parser.add_argument('--checkpoint',type=Path)
     parser.add_argument('--port',type=int,default=8080)
@@ -174,7 +175,8 @@ def main():
             from .checkpoint import load_checkpoint
             config,weights,_=load_checkpoint(args.checkpoint)
         else:config=Config();weights=toy_weights(config)
-        return Model(Backend(args.device),config,weights,pages=128,execution=args.execution)
+        dtype=args.dtype or ('float16' if args.device=='cuda' else 'float32')
+        return Model(Backend(args.device,dtype=dtype),config,weights,pages=128,execution=args.execution)
     worker=InferenceWorker(factory);server=make_server(worker,port=args.port)
     print(f'BlockForge listening on http://127.0.0.1:{server.server_port}',flush=True)
     try:server.serve_forever()

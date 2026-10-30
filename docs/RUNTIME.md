@@ -14,7 +14,7 @@ The implementation intentionally uses one query-head partition in the graph
 path; the separately benchmarked partition sweep does not silently change it.
 
 The GEMM handle is owned by the runtime and bound to the compute queue before
-capture. SGEMM receives fixed output buffers. This avoids the tested high-level
+capture. FP16/BF16 GEMM uses FP32 accumulation and fixed output buffers. This avoids the tested high-level
 CuPy wrapper's capture restriction without changing cuBLAS handle state inside
 the captured command sequence.
 
@@ -62,7 +62,8 @@ buffers can be reused across layers because stream order preserves dependencies.
 
 Warp attention uses one warp per query head with register accumulators and
 shuffle QK reduction. It has no per-token CTA-wide reduction barrier. It is still
-an FP32 attention kernel, without Tensor Core MMA or parallel prefill. Split-KV
+an attention kernel with selectable FP16/BF16 storage and FP32 softmax accumulation,
+without Tensor Core MMA or parallel prefill. Split-KV
 experiments launch separate context partitions and merge their normalized outputs
 using maximum/denominator statistics. Empty partitions and tail heads are tested.
 

@@ -1,7 +1,7 @@
 """Llama forward inference: RMSNorm, split-half RoPE, GQA, SwiGLU.
 
-Weights follow Hugging Face Llama names and [out,in] linear layouts. FP32 is
-intentional for the first numerical baseline; GPU GEMMs are delegated to CuPy.
+Weights follow Hugging Face Llama names and [out,in] linear layouts. FP16/BF16
+store weights, activations and KV in 16 bits, retaining FP32 accumulation.
 """
 from dataclasses import dataclass
 import numpy as np
@@ -62,13 +62,15 @@ class Model:
         # Validate before copying potentially large weights to the GPU.
         from .checkpoint import validate_weights
         validate_weights(config, weights)
-        self.weights = {k:self.xp.asarray(v,dtype=self.xp.float32) for k,v in weights.items()}
-        self.caches = [PagedCache(self.xp,pages,page_size,config.num_key_value_heads,config.dim)
+        self.weights = {k:backend.asarray(v) for k,v in weights.items()}
+        self.caches = [PagedCache(self.xp,pages,page_size,config.num_key_value_heads,config.dim,backend.storage_dtype)
                        for _ in range(config.num_hidden_layers)]
         self.execution=None
-        if execution!='eager':
+        if execution!='eager' or backend.dtype!='float32':
             from .execution import ExecutionRuntime
-            self.execution=ExecutionRuntime(self,mode=execution)
+            # The existing buffered path supplies explicit GEMM/activation kernels
+            # for BF16, which CuPy cannot represent as a native arithmetic dtype.
+            self.execution=ExecutionRuntime(self,mode='buffered' if execution=='eager' else execution)
 
     def create(self,key):
         for cache in self.caches: cache.create(key)
