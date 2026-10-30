@@ -210,7 +210,6 @@ credentials are not tracked.
 
 ## References
 
-- [TT-Metal/TTNN](https://github.com/tenstorrent/tt-metal): runtime architecture study.
 - [PagedAttention](https://arxiv.org/abs/2309.06180): page-based KV memory management.
 - [FlashInfer](https://arxiv.org/abs/2501.01005): attention execution and scheduling.
 - [FlashAttention-3](https://arxiv.org/abs/2407.08608): advanced asynchronous pipelines.
