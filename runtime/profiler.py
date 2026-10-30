@@ -15,7 +15,7 @@ class Profiler:
         self.cp,self.enabled=cp,enabled
         self.origin=time.perf_counter()
         self.events=[];self.device_events=[]
-        self.nvtx=os.environ.get('BLOCKFORGE_NVTX')=='1'
+        self.nvtx=os.environ.get('CUDA_RUNTIME_NVTX')=='1'
 
     @contextmanager
     def region(self,name,**arguments):

@@ -1,4 +1,4 @@
-# BlockForge
+# CUDA Inference & Serving Runtime
 
 A single-GPU inference runtime that connects CUDA kernels, memory ownership,
 program caching, graph execution and continuous request batching.
@@ -29,6 +29,13 @@ The original experiments remain archived in [the baseline report](results/RESULT
 They used the original eager runtime and a different toy serving workload.
 
 ## System layers
+
+Python developer tools support reproducible **performance engineering** experiments
+for **GPU programming** and **machine learning inference**. NVRTC compiles CUDA C++
+kernels at runtime; the evaluation scripts automate workload execution, collect
+correctness and runtime-performance data, compare optimization variants, and
+report compile/capture overhead and resource use. The reports document workload
+definitions, measurements, limitations and next steps alongside the code.
 
 | Layer | Executable responsibility |
 |---|---|
@@ -175,7 +182,7 @@ metadata, scheduling and output processing as described in each report.
 
 `results/expansion/trace.json` contains host Chrome-trace intervals and separate
 CUDA-event durations. Host/device clocks are not calibrated, so GPU timeline
-positions are not fabricated. `BLOCKFORGE_NVTX=1` enables NVTX ranges when the
+positions are not fabricated. `CUDA_RUNTIME_NVTX=1` enables NVTX ranges when the
 local NVTX libraries are installed. Nsight and Compute Sanitizer were not run
 here. See [runtime invariants and profiling](docs/RUNTIME.md).
 
@@ -198,7 +205,7 @@ manual authorship. Every commit labels the reconstruction. Benchmark execution
 timestamps and results remain unchanged. `docs/HISTORY_REWRITE.json` maps the
 original stage commits to the reconstructed history for provenance.
 
-The code is pushed to `nehanmohammed19/BlockForge`; model weights and local
+The code is pushed to `nehanmohammed19/cuda-inference-serving-runtime`; model weights and local
 credentials are not tracked.
 
 ## References

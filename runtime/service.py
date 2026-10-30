@@ -34,7 +34,7 @@ class InferenceWorker:
         self.max_active=max_active;self.token_budget=token_budget
         self.stop=threading.Event();self.ready=Future();self.lock=threading.Lock()
         self.stats={'state':'starting','completed':0,'cancelled':0,'failed':0,'active':0,'queued':0}
-        self.thread=threading.Thread(target=self._run,name='blockforge-device',daemon=True)
+        self.thread=threading.Thread(target=self._run,name='cuda-runtime-device',daemon=True)
         self.thread.start();self.ready.result(timeout=120)
 
     def submit(self,prompt,max_new_tokens=16):
@@ -178,7 +178,7 @@ def main():
         dtype=args.dtype or ('float16' if args.device=='cuda' else 'float32')
         return Model(Backend(args.device,dtype=dtype),config,weights,pages=128,execution=args.execution)
     worker=InferenceWorker(factory);server=make_server(worker,port=args.port)
-    print(f'BlockForge listening on http://127.0.0.1:{server.server_port}',flush=True)
+    print(f'CUDA inference and serving runtime listening on http://127.0.0.1:{server.server_port}',flush=True)
     try:server.serve_forever()
     except KeyboardInterrupt:pass
     finally:server.server_close();worker.close()

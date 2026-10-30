@@ -89,7 +89,7 @@ def main():
     lines+=['','![Serving](serving.png)','','## Profiling and interpretation','',
         '`trace.json` contains actual host Chrome-trace intervals and separately',
         'labeled CUDA-event durations. GPU clocks are not aligned to host timestamps;',
-        'no synthetic GPU timeline is drawn. Enable `BLOCKFORGE_NVTX=1` on a machine',
+        'no synthetic GPU timeline is drawn. Enable `CUDA_RUNTIME_NVTX=1` on a machine',
         'with NVTX support to add Nsight-visible ranges. Nsight and Compute Sanitizer',
         'were not installed/run here; register counts in the report are compiler',
         'attributes, not measured occupancy or stall counters.','',

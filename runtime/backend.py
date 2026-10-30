@@ -39,7 +39,7 @@ class Backend:
     def compile(self,filename):
         root=Path(__file__).parents[1]/'kernels'
         source=(root/'precision.cuh').read_text()+'\n'+(root/filename).read_text()
-        defines={'float32':(), 'float16':('-DBLOCKFORGE_FP16',), 'bfloat16':('-DBLOCKFORGE_BF16',)}
+        defines={'float32':(), 'float16':('-DCUDA_RUNTIME_FP16',), 'bfloat16':('-DCUDA_RUNTIME_BF16',)}
         return self.xp.RawModule(code=source,options=('--std=c++11',)+defines[self.dtype])
 
     def asarray(self,x):

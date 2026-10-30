@@ -1,10 +1,10 @@
 # What the TT-Metal/TTNN inspection changed
 
 Inspected revision: `c346c73b04b1a3074477389ac007fb0a62af437c`.
-No Tenstorrent kernel/runtime source was copied into BlockForge. These are design
+No Tenstorrent kernel/runtime source was copied into this runtime. These are design
 analogies; a CUDA GPU is not a Tensix device and does not expose its NoC or firmware.
 
-| Inspected source | Responsibility learned | BlockForge implementation |
+| Inspected source | Responsibility learned | Runtime implementation |
 |---|---|---|
 | [program_cache.hpp](https://github.com/tenstorrent/tt-metal/blob/c346c73b04b1a3074477389ac007fb0a62af437c/tt_metal/api/tt-metalium/program_cache.hpp) | Cached execution state has ownership distinct from per-invocation arguments | `ProgramCache`, `ModelProgram`, runtime token/position/page rebinding |
 | [mesh_command_queue.hpp](https://github.com/tenstorrent/tt-metal/blob/c346c73b04b1a3074477389ac007fb0a62af437c/tt_metal/api/tt-metalium/mesh_command_queue.hpp) | Ordered dispatch and transfer lifetime are explicit | Compute/transfer CUDA streams, pinned staging, event dependencies |

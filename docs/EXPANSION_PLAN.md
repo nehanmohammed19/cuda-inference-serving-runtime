@@ -11,7 +11,7 @@ ttnn/cpp/ttnn/operations/matmul/matmul.hpp.
 The missing depth is primarily execution infrastructure, not a missing collection
 of operation names. TT-Metal separates device ownership, buffer allocation,
 program compilation, runtime-argument rebinding, command queues, events, trace
-capture and operators. BlockForge will adopt analogous responsibilities using
+capture and operators. The runtime will adopt analogous responsibilities using
 CUDA streams, events, pinned staging, reusable workspaces and CUDA Graphs.
 
 ## Implement and validate
